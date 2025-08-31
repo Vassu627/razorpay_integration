@@ -3,7 +3,7 @@
 <script>
 var options = {
     "key": "rzp_test_RBsUTnNqDbnM7E", // Enter the Key ID generated from the Dashboard
-    "amount": "50000", // Amount is in currency subunits.
+    "amount": "1", // Amount is in currency subunits.
     "currency": "INR",
     "name": "Acme Corp", //your business name
     "description": "Test Transaction",
@@ -15,9 +15,9 @@ var options = {
         alert(response.razorpay_signature)
     },
     "prefill": { //We recommend using the prefill parameter to auto-fill customer's contact information, especially their phone number
-        "name": "<name>", //your customer's name
-        "email": "<email>", 
-        "contact": "<phone>"  //Provide the customer's phone number for better conversion rates 
+        "name": "chatgpt", //your customer's name
+        "email": "chat67@example.com", 
+        "contact": "0123456789"  //Provide the customer's phone number for better conversion rates 
     },
     "notes": {
         "address": "Razorpay Corporate Office"

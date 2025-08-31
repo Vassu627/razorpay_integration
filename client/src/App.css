@@ -1,0 +1,19 @@
+.product img {
+  width: 200px;
+
+}
+.product {
+  margin: 20px;
+  border: 1px solid black;
+  padding: 20px;
+  width: 300px;
+}
+
+button {
+  width: 100px;
+  background: black;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
