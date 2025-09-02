@@ -1,63 +1,81 @@
+import React from "react";
 import BodyconImg from "./bodycon.jpeg";
+
 function Product() {
-  const amount = 500;
+  const amount = 5; // INR 500
   const currency = "INR";
   const receiptId = "rcptid_11";
+
   const paymentHandler = async (e) => {
     e.preventDefault();
-    const response = await fetch("http://localhost:5000/order", {
-      method: "POST",
-      body: JSON.stringify({
-        amount,
-        currency,
-        receipt: receiptId,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const order = await response.json();
-    console.log(order);
 
-    var options = {
-      key: "rzp_test_RBsUTnNqDbnM7E", // Enter the Key ID generated from the Dashboard
-      amount, // Amount is in currency subunits.
+    // 1. Create order on backend
+    const orderResponse = await fetch("http://localhost:5000/order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount, currency, receipt: receiptId }),
+    });
+
+    const order = await orderResponse.json();
+
+    if (!order.id) {
+      alert("Could not create order. Try again.");
+      return;
+    }
+
+    // 2. Open Razorpay checkout
+    const options = {
+      key: "rzp_test_RCMac4ijgirre9", // Your test key here
+      amount: amount * 100, // amount in paise
       currency,
-      name: "Acme Corp", //your business name
+      name: "Acme Corp",
       description: "Test Transaction",
-      image: "https://example.com/your_logo",
-      order_id: order.id, //This is a sample Order ID. Pass the `id` obtained in the response of Step 1
-      handler: function (response) {
-        alert(response.razorpay_payment_id);
-        alert(response.razorpay_order_id);
-        alert(response.razorpay_signature);
+      image: "https://example.com/your_logo", // optional
+      order_id: order.id,
+      handler: async function (response) {
+        // 3. Send payment details to backend for verification
+        const verifyResponse = await fetch("http://localhost:5000/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+          }),
+        });
+
+        const verifyData = await verifyResponse.json();
+
+        if (verifyData.status === "success") {
+          alert("Payment successful and verified!");
+        } else {
+          alert("Payment verification failed!");
+        }
       },
       prefill: {
-        //We recommend using the prefill parameter to auto-fill customer's contact information, especially their phone number
-        name: "Vampire", //your customer's name
+        name: "Vampire",
         email: "vampire@example.com",
-        contact: "+919876543210", //Provide the customer's phone number for better conversion rates
+        contact: "+919876543210",
       },
-      notes: {
-        address: "Razorpay Corporate Office",
-      },
-      theme: {
-        color: "#3399cc",
+      notes: { address: "Razorpay Corporate Office" },
+      theme: { color: "#3399cc" },
+      modal: {
+        ondismiss: function () {
+          alert("Payment popup closed.");
+        },
       },
     };
-    var rzp1 = new window.Razorpay(options);
-    rzp1.on("payment.failed", function (response) {
-      alert(response.error.code);
-      alert(response.error.description);
-      alert(response.error.source);
-      alert(response.error.step);
-      alert(response.error.reason);
-      alert(response.error.metadata.order_id);
-      alert(response.error.metadata.payment_id);
+
+    const rzp = new window.Razorpay(options);
+
+    rzp.on("payment.failed", function (response) {
+      alert("Payment failed: " + response.error.description);
+      console.error(response.error);
     });
-    rzp1.open();
-    e.preventDefault();
+
+    rzp.open();
   };
+
   return (
     <div className="product">
       <h2>Bodycon</h2>
@@ -68,4 +86,5 @@ function Product() {
     </div>
   );
 }
+
 export default Product;
